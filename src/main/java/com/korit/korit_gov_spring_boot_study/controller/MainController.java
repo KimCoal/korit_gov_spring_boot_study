@@ -15,4 +15,8 @@ public class MainController {
 
     // SSR에 동적을 추가하려면 Thymleaf를 적용
     // 서버에서 HTML을 렌더링할떄, 자바 데이터를 끼워 넣을 수 있게 해주는 템플릿 엔진
+    @GetMapping("/profile")
+    public String getProfile() {
+        return "profile.html";
+    }
 }
