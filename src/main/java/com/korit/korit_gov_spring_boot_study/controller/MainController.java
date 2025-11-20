@@ -1,9 +1,9 @@
 package com.korit.korit_gov_spring_boot_study.controller;
 
+import com.korit.korit_gov_spring_boot_study.dto.AddMemberReqDto;
+import com.korit.korit_gov_spring_boot_study.service.MemberService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.boot.Banner;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,23 +23,16 @@ class UserDto {
     private int age;
 }
 
-@Data
-@AllArgsConstructor
-class TodoDto {
-    private int todoId;
-    private String title;
-    private String content;
-
-    static class MainController {
-
-    }
-}
 
 // SSR > 즉 서버쪽에서 웹페이지를 핸더링해서 반환하는 방식
 @Controller
 public class MainController {
     private List<UserDto> users = new ArrayList<>();
-    private List<TodoDto> todos = new ArrayList<>();
+    private MemberService memberService;
+
+    public MainController() {
+        memberService = MemberService.getInstance();
+    }
 
     // 동적인 요소가 없는 정적 웹페이지
     @GetMapping("/main")
@@ -77,35 +70,21 @@ public class MainController {
 
     @PostMapping("/signup")
     public String signupSubmit(@RequestParam String name, @RequestParam int age, Model model) {
-        UserDto userDto = new UserDto(users.size() + 1, name, age);
-        users.add(userDto);
+//        UserDto userDto = new UserDto(users.size() + 1, name, age);
+//        users.add(userDto);
+        if (memberService.isDuplicatedName(name)) {
+            model.addAttribute("message", name + "은 이미 가입되어있는 이름입니다.");
+            return "result-page";
+        }
+        AddMemberReqDto addMemberReqDto = new AddMemberReqDto(name, age);
+        memberService.addMember(addMemberReqDto);
         model.addAttribute("message", name + "님, 가입을 환영합니다.");
         return "result-page";
     }
 
     @GetMapping("/users")
     public String userList(Model model) {
-        model.addAttribute("users", users);
+        model.addAttribute("users", memberService.getMemberAll());
         return "users";
-    }
-    // todo 넣고 추가되었습니다
-    // 목록으로 가기 하면 목록 나오게
-    @GetMapping("/todo")
-    public String todo() {
-        return "todo";
-    }
-
-    @PostMapping("/todo")
-    public String todoSubmit(@RequestParam String title,@RequestParam String content, Model model) {
-        TodoDto todoDto = new TodoDto(todos.size()+1, title, content);
-        model.addAttribute("message", title+" [todo] 등록완료");
-        todos.add(todoDto);
-        return "todo-result-page";
-    }
-
-    @GetMapping("/todos")
-    public String todos(Model model) {
-        model.addAttribute("todos", todos);
-        return "todos";
     }
 }
